@@ -11,7 +11,7 @@ const nextConfig = {
     appIsRunning: false,
   },
    experimental: {
-    optimizeCss: true,
+    optimizeCss: false,
   },
 
 };
