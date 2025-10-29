@@ -1,18 +1,24 @@
-// ✅ app/api/get-donations/route.js
+import { NextResponse } from "next/server";
 import connectDB from "@/lib/mongodb";
 import Donation from "@/models/Donation";
 
-export async function GET() {
+export async function POST(req) {
   try {
+    const body = await req.json();
     await connectDB();
-    const donations = await Donation.find({}).sort({ createdAt: -1 });
 
-    return Response.json({ success: true, donations });
+    const donation = await Donation.create({
+      name: body.name,
+      message: body.message,
+      amount: Number(body.amount),
+      paymentId: body.razorpay_payment_id,
+      orderId: body.razorpay_order_id,
+      signature: body.razorpay_signature,
+    });
+
+    return NextResponse.json({ success: true, donation });
   } catch (error) {
-    console.error("❌ Error fetching donations:", error);
-    return Response.json(
-      { success: false, error: "Failed to fetch donations" },
-      { status: 500 }
-    );
+    console.error("Payment save error:", error);
+    return NextResponse.json({ success: false, message: "Error saving payment" }, { status: 500 });
   }
 }

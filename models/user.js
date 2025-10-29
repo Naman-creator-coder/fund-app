@@ -1,9 +1,11 @@
 import mongoose from "mongoose";
 
-const UserSchema = new mongoose.Schema({
-  name: String,
-  email: String,
-  image: String,
+const paymentSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  message: { type: String },
+  amount: { type: Number, required: true },
+  email: { type: String },
+  time: { type: Date, default: Date.now },
 });
 
-export default mongoose.models.User || mongoose.model("User", UserSchema);
+export default mongoose.models.Payment || mongoose.model("Payment", paymentSchema);
