@@ -10,6 +10,9 @@ const nextConfig = {
   devIndicators: {
     appIsRunning: false,
   },
+   experimental: {
+    optimizeCss: true,
+  },
 
 };
 
