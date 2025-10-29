@@ -41,33 +41,47 @@ export default function DashboardPage() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // ✅ Handle Payment + Donation Save
+  // ✅ Handle Donation
+
   const handleDonate = async (e) => {
-    e.preventDefault();
-    if (!formData.name || !formData.amount)
-      return alert("Please fill all required fields");
+  e.preventDefault();
 
-    try {
-      const res = await fetch("/api/create-order", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount: formData.amount }),
-      });
+  if (!formData.name || !formData.amount) {
+    alert("Please fill all required fields");
+    return;
+  }
 
-      const order = await res.json();
-      if (!order.id) {
-        alert("Failed to create order ❌");
-        return;
-      }
+  try {
+    // ✅ Create order on backend
+    const res = await fetch("/api/create-order", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ amount: formData.amount }),
+    });
 
-      const options = {
-        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-        amount: order.amount,
-        currency: order.currency,
-        name: "Support Project 💖",
-        description: "Thank you for your support!",
-        order_id: order.id,
-        handler: async function (response) {
+    const order = await res.json();
+    if (!res.ok || !order.id) {
+      alert(order.error || "Failed to create order ❌");
+      return;
+    }
+
+    // ✅ Use NEXT_PUBLIC key (make sure it's added in .env and on Vercel)
+    const key = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
+
+    if (!key) {
+      alert("Razorpay key not found in environment variables");
+      return;
+    }
+
+    const options = {
+      key,
+      amount: order.amount,
+      currency: order.currency,
+      name: "Support Project 💖",
+      description: "Thank you for your support!",
+      order_id: order.id,
+      handler: async function (response) {
+        try {
           const save = await fetch("/api/payment-success", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -84,18 +98,25 @@ export default function DashboardPage() {
             alert("✅ Thank you for your donation!");
             setFormData({ name: "", message: "", amount: "" });
             setDonations((prev) => [result.donation, ...prev]);
+          } else {
+            alert("Failed to save donation");
           }
-        },
-        theme: { color: "#9333ea" },
-      };
+        } catch (err) {
+          console.error("Payment save error:", err);
+          alert("Error saving donation");
+        }
+      },
+      theme: { color: "#9333ea" },
+    };
 
-      const rzp = new window.Razorpay(options);
-      rzp.open();
-    } catch (error) {
-      console.error("Donation error:", error);
-      alert("Something went wrong!");
-    }
-  };
+    const rzp = new window.Razorpay(options);
+    rzp.open();
+  } catch (error) {
+    console.error("Donation error:", error);
+    alert("Something went wrong!");
+  }
+};
+
 
   // ✅ Loading & No Session States
   if (status === "loading")
