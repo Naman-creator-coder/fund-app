@@ -62,8 +62,7 @@ export default function SettingsPage() {
             >
               <option value="purple">Purple</option>
               <option value="blue">Blue</option>
-              <option value="green">Green</option>
-              <option value="pink">Pink</option>
+              
             </select>
           </div>
         </div>
